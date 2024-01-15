@@ -6,8 +6,9 @@ void main() {
   runApp(MaterialApp(
     home: PaginaBienvenida(),
   ));
-}
 
+}
+List<Item> items = [];
 class PaginaBienvenida extends StatefulWidget {
   @override
   _PaginaBienvenidaState createState() => _PaginaBienvenidaState();
@@ -40,7 +41,7 @@ class _PaginaBienvenidaState extends State<PaginaBienvenida>{
               });
               navegarPaginaSeleccionada(paginaSeleccionada, context);
             },
-            items: <String>['Bienvenida', 'Datos', 'Pagina 3']
+            items: <String>['Bienvenida', 'Datos', 'Listar', 'Api']
                 .map<DropdownMenuItem<String>>((String value) {
               return DropdownMenuItem<String>(
                 value: value,
@@ -103,8 +104,18 @@ void navegarPaginaSeleccionada(String paginaSeleccionada, context){
         MaterialPageRoute(builder: (context) => PaginaContenido()),
       );
       break;
-    case 'Pagina 3':
-    //ir a la pagina 3
+    case 'Listar':
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => PaginaListar()),
+      );
+      break;
+    case 'Api':
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => PaginaApi()),
+      );
+      break;
       break;
   }
 }
@@ -116,7 +127,7 @@ class PaginaContenido extends StatefulWidget {
 class _StatePaginaContenido extends State<PaginaContenido>{
   String paginaSeleccionada = 'Datos';
   //estructura para almacenar los datos
-  List<Item> items = [];
+
 
   //Controladores para los los campos de texto
 
@@ -150,7 +161,7 @@ class _StatePaginaContenido extends State<PaginaContenido>{
               });
               navegarPaginaSeleccionada(paginaSeleccionada, context);
             },
-            items: <String>['Bienvenida', 'Datos', 'Pagina 3']
+            items: <String>['Bienvenida', 'Datos', 'Listar', 'Api']
                 .map<DropdownMenuItem<String>>((String value) {
               return DropdownMenuItem<String>(
                 value: value,
@@ -188,17 +199,41 @@ class _StatePaginaContenido extends State<PaginaContenido>{
             ),
             SizedBox(height: 20),
             // Lista para mostrar los items existentes
+//agregar aqui
             Expanded(
               child: ListView.builder(
                 itemCount: items.length,
                 itemBuilder: (context, index) {
-                  return ListTile(
-                    title: Text('ID: ${items[index].id}, Nombre: ${items[index].nombre}, Descripcion: ${items[index].descripcion}'),
-                    // Add more functionality as needed, e.g., edit or delete items
+                  return Dismissible(
+                    key: Key(items[index].id), // Use a unique key for each item
+                    onDismissed: (direction) {
+                      // Remove the item from the list when dismissed
+                      setState(() {
+                        items.removeAt(index);
+                      });
+                    },
+                    background: Container(
+                      color: Colors.red, // Background color when swiping to delete
+                      child: Icon(Icons.delete, color: Colors.white),
+                    ),
+                    child: ListTile(
+                      title: Text('ID: ${items[index].id}, Nombre: ${items[index].nombre}, Descripcion: ${items[index].descripcion}'),
+                      // Add more functionality as needed, e.g., edit or other actions
+                      trailing: IconButton(
+                        icon: Icon(Icons.delete),
+                        onPressed: () {
+                          // Manually trigger deletion when the delete button is pressed
+                          setState(() {
+                            items.removeAt(index);
+                          });
+                        },
+                      ),
+                    ),
                   );
                 },
               ),
             ),
+
           ],
         ),
       ),
@@ -206,10 +241,10 @@ class _StatePaginaContenido extends State<PaginaContenido>{
         onPressed: (){
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => PaginaBienvenida()),
+            MaterialPageRoute(builder: (context) => PaginaListar()),
           );
         },
-        child: Icon(Icons.home),
+        child: Icon(Icons.arrow_forward_ios),
 
       ),
     );
@@ -236,7 +271,161 @@ class _StatePaginaContenido extends State<PaginaContenido>{
  **/
 }
 
+class PaginaListar extends StatefulWidget {
+  @override
+  _PaginaListarState createState() => _PaginaListarState();
+}
 
+class _PaginaListarState extends State<PaginaListar>{
+  String paginaSeleccionada = 'Listar';
+
+
+  @override
+  Widget build(BuildContext context){
+    return Scaffold(
+      //dentro del widget Scaffold, se puede anidar otros Widgets, es como el widget de base
+      appBar: AppBar(
+        title: Text("Huemul"),
+        centerTitle: true,
+        leading:
+        IconButton(
+            onPressed: null,
+            icon:
+            Image.network('https://media.licdn.com/dms/image/C4E0BAQGEl5jj-N2CQw/company-logo_200_200/0/1630601529912?e=2147483647&v=beta&t=6znabYsnflfc7HFJwL3GK0wsvYYKflF9bJSg4egIzew')
+        ),
+        actions: [
+          // Dropdown menu in the AppBar
+          DropdownButton<String>(
+            value: paginaSeleccionada,
+            onChanged: (String? nuevoValor) {
+              setState(() {
+                paginaSeleccionada = nuevoValor!;
+              });
+              navegarPaginaSeleccionada(paginaSeleccionada, context);
+            },
+            items: <String>['Bienvenida', 'Datos', 'Listar', 'Api']
+                .map<DropdownMenuItem<String>>((String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: Text(value),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+
+
+
+//insetar body con listar
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+
+            // Lista para mostrar los items existentes
+            Expanded(
+              child: ListView.builder(
+                itemCount: items.length,
+                itemBuilder: (context, index) {
+                  return Dismissible(
+                    key: Key(items[index].id), // Use a unique key for each item
+                    onDismissed: (direction) {
+                      // Remove the item from the list when dismissed
+                      setState(() {
+                        items.removeAt(index);
+                      });
+                    },
+                    background: Container(
+                      color: Colors.red, // Background color when swiping to delete
+                      child: Icon(Icons.delete, color: Colors.white),
+                    ),
+                    child: ListTile(
+                      title: Text('ID: ${items[index].id}, Nombre: ${items[index].nombre}, Descripcion: ${items[index].descripcion}'),
+                      // Add more functionality as needed, e.g., edit or other actions
+                      trailing: IconButton(
+                        icon: Icon(Icons.delete),
+                        onPressed: () {
+                          // Manually trigger deletion when the delete button is pressed
+                          setState(() {
+                            items.removeAt(index);
+                          });
+                        },
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+
+      floatingActionButton: FloatingActionButton(
+        onPressed: (){
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => PaginaApi()),
+          );
+        },
+        child: Icon(Icons.arrow_forward_ios),
+
+      ),
+    );
+  }
+}
+
+
+class PaginaApi extends StatefulWidget {
+  @override
+  _PaginaApiState createState() => _PaginaApiState();
+}
+
+class _PaginaApiState extends State<PaginaApi>{
+  String paginaSeleccionada = 'Api';
+
+
+  @override
+  Widget build(BuildContext context){
+    return Scaffold(
+
+      appBar: AppBar(
+        title: Text("Huemul"),
+        centerTitle: true,
+        leading:
+        IconButton(
+            onPressed: null,
+            icon:
+            Image.network('https://media.licdn.com/dms/image/C4E0BAQGEl5jj-N2CQw/company-logo_200_200/0/1630601529912?e=2147483647&v=beta&t=6znabYsnflfc7HFJwL3GK0wsvYYKflF9bJSg4egIzew')
+        ),
+        actions: [
+          // Dropdown menu in the AppBar
+          DropdownButton<String>(
+            value: paginaSeleccionada,
+            onChanged: (String? nuevoValor) {
+              setState(() {
+                paginaSeleccionada = nuevoValor!;
+              });
+              navegarPaginaSeleccionada(paginaSeleccionada, context);
+            },
+            items: <String>['Bienvenida', 'Datos', 'Listar', 'Api']
+                .map<DropdownMenuItem<String>>((String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: Text(value),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+
+
+
+
+
+    );
+  }
+}
 
 //crear la clase para almacenar los items
 class Item {

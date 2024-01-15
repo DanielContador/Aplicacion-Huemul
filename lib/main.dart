@@ -1,6 +1,8 @@
 import 'dart:ui';
-
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
+import 'dart:convert';
+
 //se reemplazó MyApp por MaterialApp, ya que permite utilizar otros Widgets
 void main() {
   runApp(MaterialApp(
@@ -85,6 +87,12 @@ class _PaginaBienvenidaState extends State<PaginaBienvenida>{
 
     );
   }
+  void initState() {
+    super.initState();
+    // Call fetchData when the widget is created
+    fetchData();
+  }
+
 }
 
 
@@ -381,22 +389,36 @@ class PaginaApi extends StatefulWidget {
   _PaginaApiState createState() => _PaginaApiState();
 }
 
-class _PaginaApiState extends State<PaginaApi>{
-  String paginaSeleccionada = 'Api';
 
+
+class _PaginaApiState extends State<PaginaApi> {
+  String paginaSeleccionada = 'Api';
+  String? apiData = ''; // Variable para guardar los datos de la api
 
   @override
-  Widget build(BuildContext context){
-    return Scaffold(
+  void initState() {
+    super.initState();
+    // Call your fetchData method here or any other initialization logic
+    fetchDataAndUpdateState();
+  }
 
+  Future<void> fetchDataAndUpdateState() async {
+    String? data = await fetchData();
+    setState(() {
+      apiData = data;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
       appBar: AppBar(
         title: Text("Huemul"),
         centerTitle: true,
-        leading:
-        IconButton(
-            onPressed: null,
-            icon:
-            Image.network('https://media.licdn.com/dms/image/C4E0BAQGEl5jj-N2CQw/company-logo_200_200/0/1630601529912?e=2147483647&v=beta&t=6znabYsnflfc7HFJwL3GK0wsvYYKflF9bJSg4egIzew')
+        leading: IconButton(
+          onPressed: null,
+          icon: Image.network(
+              'https://media.licdn.com/dms/image/C4E0BAQGEl5jj-N2CQw/company-logo_200_200/0/1630601529912?e=2147483647&v=beta&t=6znabYsnflfc7HFJwL3GK0wsvYYKflF9bJSg4egIzew'),
         ),
         actions: [
           // Dropdown menu in the AppBar
@@ -418,14 +440,30 @@ class _PaginaApiState extends State<PaginaApi>{
           ),
         ],
       ),
-
-
-
-
-
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Display the fetched API data
+            Text(
+              'API Data:',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            Text(apiData ?? 'Sin datos'),
+          ],
+        ),
+      ),
     );
   }
+
+
+
+
+
+
 }
+
 
 //crear la clase para almacenar los items
 class Item {
@@ -434,4 +472,96 @@ class Item {
   final String descripcion;
 
   Item({required this.id, required this.nombre, required this.descripcion});
+}
+/*
+Solución temporal a error CORS cross origin de conexion a API desde chrome
+1- Go to flutter\bin\cache and remove a file named: flutter_tools.stamp
+2- Go to flutter\packages\flutter_tools\lib\src\web and open the file chrome.dart.
+3- Find '--disable-extensions'
+4- Add '--disable-web-security'
+
+La solucion definitiva seria que desde el server donde esta la API permitan el origen de esta app
+*/
+
+Future<String?> fetchData() async {
+  final Uri url = Uri.parse('https://af-mutual-valida-dev-001.azurewebsites.net/api/department/v1');
+
+  // Add your required headers here
+  Map<String, String> headers = {
+    'orgid': '',
+  };
+  final response = await http.get(url, headers: headers);
+  if (response.statusCode == 200) {
+    // Successful GET request
+    print('Response data: ${response.body}');
+  } else {
+    // Handle errors
+    print('Error: ${response.statusCode}');
+    print('Error response: ${response.body}');
+  }
+}
+
+Future<void> postData(Map<String, dynamic> data) async {
+  final Uri url = Uri.parse('https://af-mutual-valida-dev-001.azurewebsites.net/api/department/v1');
+
+  // Add your required headers here
+  Map<String, String> headers = {
+    'orgid': '',
+  };
+
+  final response = await http.post(
+    url,
+    headers: headers,
+    body: jsonEncode(data),
+  );
+
+  if (response.statusCode == 201) {
+    print('Data posted successfully');
+  } else {
+    print('Failed to post data. Status code: ${response.statusCode}');
+    print('Error response: ${response.body}');
+  }
+}
+
+Future<void> updateData(String id, Map<String, dynamic> newData) async {
+  final Uri url = Uri.parse('https://af-mutual-valida-dev-001.azurewebsites.net/api/department/v1/$id');
+
+  // Add your required headers here
+  Map<String, String> headers = {
+    'orgid': '',
+  };
+
+  final response = await http.put(
+    url,
+    headers: headers,
+    body: jsonEncode(newData),
+  );
+
+  if (response.statusCode == 200) {
+    print('Data updated successfully');
+  } else {
+    print('Failed to update data. Status code: ${response.statusCode}');
+    print('Error response: ${response.body}');
+  }
+}
+
+Future<void> deleteData(String id) async {
+  final Uri url = Uri.parse('https://af-mutual-valida-dev-001.azurewebsites.net/api/department/v1/$id');
+
+  // Add your required headers here
+  Map<String, String> headers = {
+    'orgid': '',
+  };
+
+  final response = await http.delete(
+    url,
+    headers: headers,
+  );
+
+  if (response.statusCode == 204) {
+    print('Data deleted successfully');
+  } else {
+    print('Failed to delete data. Status code: ${response.statusCode}');
+    print('Error response: ${response.body}');
+  }
 }

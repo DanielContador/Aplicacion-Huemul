@@ -87,11 +87,7 @@ class _PaginaBienvenidaState extends State<PaginaBienvenida>{
 
     );
   }
-  void initState() {
-    super.initState();
-    // Call fetchData when the widget is created
-    fetchData();
-  }
+
 
 }
 
@@ -389,80 +385,74 @@ class PaginaApi extends StatefulWidget {
   _PaginaApiState createState() => _PaginaApiState();
 }
 
-
-
+//final Uri url = Uri.parse('https://af-mutual-valida-dev-001.azurewebsites.net/api/department/v1');
 class _PaginaApiState extends State<PaginaApi> {
   String paginaSeleccionada = 'Api';
-  String? apiData = ''; // Variable para guardar los datos de la api
+  List<dynamic> jsonData = [];
 
   @override
   void initState() {
     super.initState();
-    // Call your fetchData method here or any other initialization logic
-    fetchDataAndUpdateState();
+    fetchData();
   }
 
-  Future<void> fetchDataAndUpdateState() async {
-    String? data = await fetchData();
+  Future<void> fetchData() async {
+    final List<dynamic> allData = [];
+
+    for (int i = 1; i <= 30; i++) {
+      try {
+        final response = await http.get(Uri.parse('https://af-mutual-valida-dev-001.azurewebsites.net/api/department/v1/$i'));
+
+        if (response.statusCode == 200) {
+          final Map<String, dynamic> parsedJson = json.decode(response.body);
+          if (parsedJson.containsKey('data') && parsedJson['data'] is List) {
+            allData.addAll(parsedJson['data']);
+          } else {
+            throw Exception('Invalid JSON format - missing or incorrect "data" property');
+          }
+        } else {
+          throw Exception('Failed to load data');
+        }
+      } catch (e) {
+        print('Error fetching data for ID $i: $e');
+        // You can handle the exception as needed, for example, logging or displaying an error message.
+      }
+    }
+
     setState(() {
-      apiData = data;
+      jsonData = allData;
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Huemul"),
-        centerTitle: true,
-        leading: IconButton(
-          onPressed: null,
-          icon: Image.network(
-              'https://media.licdn.com/dms/image/C4E0BAQGEl5jj-N2CQw/company-logo_200_200/0/1630601529912?e=2147483647&v=beta&t=6znabYsnflfc7HFJwL3GK0wsvYYKflF9bJSg4egIzew'),
-        ),
-        actions: [
-          // Dropdown menu in the AppBar
-          DropdownButton<String>(
-            value: paginaSeleccionada,
-            onChanged: (String? nuevoValor) {
-              setState(() {
-                paginaSeleccionada = nuevoValor!;
-              });
-              navegarPaginaSeleccionada(paginaSeleccionada, context);
-            },
-            items: <String>['Bienvenida', 'Datos', 'Listar', 'Api']
-                .map<DropdownMenuItem<String>>((String value) {
-              return DropdownMenuItem<String>(
-                value: value,
-                child: Text(value),
-              );
-            }).toList(),
-          ),
-        ],
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Display the fetched API data
-            Text(
-              'API Data:',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            Text(apiData ?? 'Sin datos'),
-          ],
+      // ... (unchanged code)
+
+      body: Center(
+        child: jsonData.isEmpty
+            ? CircularProgressIndicator()
+            : ListView.builder(
+          itemCount: jsonData.length,
+          itemBuilder: (context, index) {
+            final department = jsonData[index];
+
+            final departmentName = department['departmentName'] ?? 'N/A';
+            final departmentDesc = department['departmentDesc'] ?? 'No description';
+            final departmentId = department['departmentId'] ?? 'No id';
+
+            return ListTile(
+              title: Text(departmentName),
+              subtitle: Text(departmentDesc),
+              leading: Text(departmentId),
+            );
+          },
         ),
       ),
     );
   }
-
-
-
-
-
-
 }
+
 
 
 //crear la clase para almacenar los items
@@ -483,23 +473,7 @@ Solución temporal a error CORS cross origin de conexion a API desde chrome
 La solucion definitiva seria que desde el server donde esta la API permitan el origen de esta app
 */
 
-Future<String?> fetchData() async {
-  final Uri url = Uri.parse('https://af-mutual-valida-dev-001.azurewebsites.net/api/department/v1');
 
-  // Add your required headers here
-  Map<String, String> headers = {
-    'orgid': '',
-  };
-  final response = await http.get(url, headers: headers);
-  if (response.statusCode == 200) {
-    // Successful GET request
-    print('Response data: ${response.body}');
-  } else {
-    // Handle errors
-    print('Error: ${response.statusCode}');
-    print('Error response: ${response.body}');
-  }
-}
 
 Future<void> postData(Map<String, dynamic> data) async {
   final Uri url = Uri.parse('https://af-mutual-valida-dev-001.azurewebsites.net/api/department/v1');

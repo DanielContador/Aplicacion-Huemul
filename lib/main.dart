@@ -390,6 +390,8 @@ class _PaginaApiState extends State<PaginaApi> {
   String paginaSeleccionada = 'Api';
   List<dynamic> jsonData = [];
 
+  bool isLoading = false;
+
   @override
   void initState() {
     super.initState();
@@ -397,11 +399,16 @@ class _PaginaApiState extends State<PaginaApi> {
   }
 
   Future<void> fetchData() async {
+    setState(() {
+      isLoading = true;
+    });
+
     final List<dynamic> allData = [];
 
-    for (int i = 1; i <= 30; i++) {
+    for (int i = 1; i <= 10; i++) {
       try {
-        final response = await http.get(Uri.parse('https://af-mutual-valida-dev-001.azurewebsites.net/api/department/v1/$i'));
+        final response =
+        await http.get(Uri.parse('https://af-mutual-valida-dev-001.azurewebsites.net/api/department/v1/$i'));
 
         if (response.statusCode == 200) {
           final Map<String, dynamic> parsedJson = json.decode(response.body);
@@ -421,7 +428,34 @@ class _PaginaApiState extends State<PaginaApi> {
 
     setState(() {
       jsonData = allData;
+      isLoading = false;
     });
+  }
+
+  Future<void> deleteData(int id) async {
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      final response =
+      await http.delete(Uri.parse('https://af-mutual-valida-dev-001.azurewebsites.net/api/department/v1/$id'));
+
+      if (response.statusCode == 200) {
+        // Delete was successful
+        print('Deleted data with ID: $id');
+
+        // Reload the page by fetching data again
+        await fetchData();
+
+        // You may want to update the UI or perform any other actions after successful deletion.
+      } else {
+        throw Exception('Failed to delete data with ID: $id');
+      }
+    } catch (e) {
+      print('Error deleting data with ID $id: $e');
+      // You can handle the exception as needed, for example, logging or displaying an error message.
+    }
   }
 
   @override
@@ -430,7 +464,9 @@ class _PaginaApiState extends State<PaginaApi> {
       // ... (unchanged code)
 
       body: Center(
-        child: jsonData.isEmpty
+        child: isLoading
+            ? CircularProgressIndicator()
+            : jsonData.isEmpty
             ? CircularProgressIndicator()
             : ListView.builder(
           itemCount: jsonData.length,
@@ -445,6 +481,14 @@ class _PaginaApiState extends State<PaginaApi> {
               title: Text(departmentName),
               subtitle: Text(departmentDesc),
               leading: Text(departmentId),
+              trailing: IconButton(
+                icon: Icon(Icons.delete),
+                onPressed: () {
+                  // Call the deleteData function when the delete button is pressed
+                  deleteData(int.parse(departmentId));
+                  // Update the UI or perform any other actions after deletion
+                },
+              ),
             );
           },
         ),
@@ -452,6 +496,8 @@ class _PaginaApiState extends State<PaginaApi> {
     );
   }
 }
+
+
 
 
 

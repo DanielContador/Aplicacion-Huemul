@@ -386,10 +386,12 @@ class PaginaApi extends StatefulWidget {
 }
 
 //final Uri url = Uri.parse('https://af-mutual-valida-dev-001.azurewebsites.net/api/department/v1');
+
+
+
 class _PaginaApiState extends State<PaginaApi> {
   String paginaSeleccionada = 'Api';
   List<dynamic> jsonData = [];
-
   bool isLoading = false;
 
   @override
@@ -407,8 +409,7 @@ class _PaginaApiState extends State<PaginaApi> {
 
     for (int i = 1; i <= 10; i++) {
       try {
-        final response =
-        await http.get(Uri.parse('https://af-mutual-valida-dev-001.azurewebsites.net/api/department/v1/$i'));
+        final response = await http.get(Uri.parse('https://af-mutual-valida-dev-001.azurewebsites.net/api/department/v1/$i'));
 
         if (response.statusCode == 200) {
           final Map<String, dynamic> parsedJson = json.decode(response.body);
@@ -422,7 +423,6 @@ class _PaginaApiState extends State<PaginaApi> {
         }
       } catch (e) {
         print('Error fetching data for ID $i: $e');
-        // You can handle the exception as needed, for example, logging or displaying an error message.
       }
     }
 
@@ -438,31 +438,104 @@ class _PaginaApiState extends State<PaginaApi> {
     });
 
     try {
-      final response =
-      await http.delete(Uri.parse('https://af-mutual-valida-dev-001.azurewebsites.net/api/department/v1/$id'));
+      final response = await http.delete(Uri.parse('https://af-mutual-valida-dev-001.azurewebsites.net/api/department/v1/$id'));
 
       if (response.statusCode == 200) {
-        // Delete was successful
         print('Deleted data with ID: $id');
-
-        // Reload the page by fetching data again
         await fetchData();
-
-        // You may want to update the UI or perform any other actions after successful deletion.
       } else {
         throw Exception('Failed to delete data with ID: $id');
       }
     } catch (e) {
       print('Error deleting data with ID $id: $e');
-      // You can handle the exception as needed, for example, logging or displaying an error message.
     }
+  }
+
+  Future<void> updateData(int id, Map<String, dynamic> newData) async {
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      final response = await http.put(
+        Uri.parse('https://af-mutual-valida-dev-001.azurewebsites.net/api/department/v1/'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode(newData),
+      );
+
+      print('Request URL: ${response.request?.url}');
+      print('Request Headers: ${response.request?.headers}');
+      print('Request Body: ${json.encode(newData)}');
+
+      if (response.statusCode == 200) {
+        print('Updated data with ID: $id');
+        await fetchData();
+      } else {
+        print('Failed to update data with ID: $id');
+        print('Response Status Code: ${response.statusCode}');
+        print('Response Body: ${response.body}');
+        throw Exception('Failed to update data with ID: $id');
+      }
+    } catch (e) {
+      print('Error updating data with ID $id: $e');
+    }
+  }
+
+
+  Future<void> showUpdateDialog(int id) async {
+    TextEditingController nameController = TextEditingController();
+    TextEditingController descController = TextEditingController();
+
+    return showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Update Data'),
+          content: SingleChildScrollView(
+            child: Column(
+              children: [
+                TextField(
+                  controller: nameController,
+                  decoration: InputDecoration(labelText: 'New Name'),
+                ),
+                TextField(
+                  controller: descController,
+                  decoration: InputDecoration(labelText: 'New Description'),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Map<String, dynamic> newData = {
+                  'departmentId' : id.toString(),
+                  'departmentName':nameController.text.toString(),
+                  'departmentDesc': descController.text.toString(),
+                };
+                updateData(id, newData);
+                Navigator.pop(context);
+              },
+              child: Text('Update'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // ... (unchanged code)
-
+      appBar: AppBar(
+        title: Text('API Page'),
+      ),
       body: Center(
         child: isLoading
             ? CircularProgressIndicator()
@@ -481,13 +554,22 @@ class _PaginaApiState extends State<PaginaApi> {
               title: Text(departmentName),
               subtitle: Text(departmentDesc),
               leading: Text(departmentId),
-              trailing: IconButton(
-                icon: Icon(Icons.delete),
-                onPressed: () {
-                  // Call the deleteData function when the delete button is pressed
-                  deleteData(int.parse(departmentId));
-                  // Update the UI or perform any other actions after deletion
-                },
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: Icon(Icons.delete),
+                    onPressed: () {
+                      deleteData(int.parse(departmentId));
+                    },
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.edit),
+                    onPressed: () {
+                      showUpdateDialog(int.parse(departmentId));
+                    },
+                  ),
+                ],
               ),
             );
           },
@@ -496,6 +578,7 @@ class _PaginaApiState extends State<PaginaApi> {
     );
   }
 }
+
 
 
 
@@ -521,67 +604,8 @@ La solucion definitiva seria que desde el server donde esta la API permitan el o
 
 
 
-Future<void> postData(Map<String, dynamic> data) async {
-  final Uri url = Uri.parse('https://af-mutual-valida-dev-001.azurewebsites.net/api/department/v1');
 
-  // Add your required headers here
-  Map<String, String> headers = {
-    'orgid': '',
-  };
 
-  final response = await http.post(
-    url,
-    headers: headers,
-    body: jsonEncode(data),
-  );
 
-  if (response.statusCode == 201) {
-    print('Data posted successfully');
-  } else {
-    print('Failed to post data. Status code: ${response.statusCode}');
-    print('Error response: ${response.body}');
-  }
-}
 
-Future<void> updateData(String id, Map<String, dynamic> newData) async {
-  final Uri url = Uri.parse('https://af-mutual-valida-dev-001.azurewebsites.net/api/department/v1/$id');
 
-  // Add your required headers here
-  Map<String, String> headers = {
-    'orgid': '',
-  };
-
-  final response = await http.put(
-    url,
-    headers: headers,
-    body: jsonEncode(newData),
-  );
-
-  if (response.statusCode == 200) {
-    print('Data updated successfully');
-  } else {
-    print('Failed to update data. Status code: ${response.statusCode}');
-    print('Error response: ${response.body}');
-  }
-}
-
-Future<void> deleteData(String id) async {
-  final Uri url = Uri.parse('https://af-mutual-valida-dev-001.azurewebsites.net/api/department/v1/$id');
-
-  // Add your required headers here
-  Map<String, String> headers = {
-    'orgid': '',
-  };
-
-  final response = await http.delete(
-    url,
-    headers: headers,
-  );
-
-  if (response.statusCode == 204) {
-    print('Data deleted successfully');
-  } else {
-    print('Failed to delete data. Status code: ${response.statusCode}');
-    print('Error response: ${response.body}');
-  }
-}

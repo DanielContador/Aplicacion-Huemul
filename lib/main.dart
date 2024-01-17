@@ -10,7 +10,7 @@ void main() {
   ));
 
 }
-List<Item> items = [];
+
 class PaginaBienvenida extends StatefulWidget {
   @override
   _PaginaBienvenidaState createState() => _PaginaBienvenidaState();
@@ -34,7 +34,7 @@ class _PaginaBienvenidaState extends State<PaginaBienvenida>{
             Image.network('https://media.licdn.com/dms/image/C4E0BAQGEl5jj-N2CQw/company-logo_200_200/0/1630601529912?e=2147483647&v=beta&t=6znabYsnflfc7HFJwL3GK0wsvYYKflF9bJSg4egIzew')
         ),
         actions: [
-          // Dropdown menu in the AppBar
+          // Menu desplegable
           DropdownButton<String>(
             value: paginaSeleccionada,
             onChanged: (String? nuevoValor) {
@@ -43,7 +43,8 @@ class _PaginaBienvenidaState extends State<PaginaBienvenida>{
               });
               navegarPaginaSeleccionada(paginaSeleccionada, context);
             },
-            items: <String>['Bienvenida', 'Datos', 'Listar', 'Api']
+            
+            items: <String>['Bienvenida', 'Agregar', 'Buscar', 'Listar_Modificar_Eliminar']
                 .map<DropdownMenuItem<String>>((String value) {
               return DropdownMenuItem<String>(
                 value: value,
@@ -56,7 +57,7 @@ class _PaginaBienvenidaState extends State<PaginaBienvenida>{
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Center(
+          const Center(
             child: Text(
               "Bienvenido a esta App de prueba",
               style: TextStyle(
@@ -66,10 +67,10 @@ class _PaginaBienvenidaState extends State<PaginaBienvenida>{
               ),
             ),
           ),
-          SizedBox(height: 20), // Add some spacing between the text and the button
+          SizedBox(height: 20), // Espacio entre los contenidos
           Center(
             child: SizedBox(
-              width: 200, // Set the width as needed
+              width: 200, // el ancho necesario
               child: FloatingActionButton.extended(
                 onPressed: () {
                   Navigator.push(
@@ -77,7 +78,7 @@ class _PaginaBienvenidaState extends State<PaginaBienvenida>{
                     MaterialPageRoute(builder: (context) => PaginaContenido()),
                   );
                 },
-                icon: Icon(Icons.arrow_forward_ios), // Replace with your desired icon
+                icon: Icon(Icons.arrow_forward_ios), 
                 label: Text('Comenzar'),
               ),
             ),
@@ -102,19 +103,19 @@ void navegarPaginaSeleccionada(String paginaSeleccionada, context){
         MaterialPageRoute(builder: (context) => PaginaBienvenida()),
       );
       break;
-    case 'Datos':
+    case 'Agregar':
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => PaginaContenido()),
       );
       break;
-    case 'Listar':
+    case 'Buscar':
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => PaginaListar()),
       );
       break;
-    case 'Api':
+    case 'Listar_Modificar_Eliminar':
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => PaginaApi()),
@@ -129,16 +130,16 @@ class PaginaContenido extends StatefulWidget {
 }
 
 class _StatePaginaContenido extends State<PaginaContenido>{
-  String paginaSeleccionada = 'Datos';
+  String paginaSeleccionada = 'Agregar';
   List<dynamic> datoSeleccionado = [];
 
   Future<void> postData(Map<String, dynamic> newData) async {
-    // Your API endpoint URL
+    // url de la API
     final String apiUrl = 'https://af-mutual-valida-dev-001.azurewebsites.net/api/department/v1/';
 
 
 
-    // Perform the POST request
+    // hacer el POST a la api
     try {
       final response = await http.post(
         Uri.parse(apiUrl),
@@ -148,27 +149,28 @@ class _StatePaginaContenido extends State<PaginaContenido>{
       print('Request URL: ${response.request?.url}');
       print('Request Headers: ${response.request?.headers}');
       print('Request Body: ${json.encode(newData)}');
-      // Handle the response
+      
       if (response.statusCode == 201) {
-        // Successful request, you can handle the response data here
+        //Mostrar un mensaje si es que se agrega un item 
         print('Response: ${response.body}');
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Item added successfully!'),
-            duration: Duration(seconds: 10), // Adjust the duration as needed
+            content: Text('Item añadido exitosamente'),
+            duration: Duration(seconds: 3), // Se puede ajustar la duracion
           ),
         );
       }
       else if (response.statusCode == 500) {
-        // HTTP status code 500 may indicate a server error
+        // el codigo de error 500 aparece si es que ya existe un item con ese ID
+        //se imprimen mensajes en consola que ayuden a entender algun posible error en el formato
         print('Response Status Code: ${response.statusCode}');
         print('Response Body: ${response.body}');
 
-        // Show a message indicating that the ID already exists (adjust the message as needed)
+        // Se muestra un mensaje en caso de que ya exista un item con el mismo ID
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('ID already exists.'),
+            content: Text('Ya hay un item con ese ID'),
             duration: Duration(seconds: 2),
           ),
         );
@@ -179,13 +181,13 @@ class _StatePaginaContenido extends State<PaginaContenido>{
         print('Response Body: ${response.body}');
       }
     } catch (e) {
-      // Handle any exceptions that occur
+      //para ver un mensaje de error en consola 
       print('Exception: $e');
     }
   }
 
 
-  //estructura para almacenar los datos
+  
 
 
   //Controladores para los los campos de texto
@@ -202,6 +204,7 @@ class _StatePaginaContenido extends State<PaginaContenido>{
     return Scaffold(
 
       appBar: AppBar(
+
         title: Text("Huemul"),
         centerTitle: true,
         leading:
@@ -211,7 +214,7 @@ class _StatePaginaContenido extends State<PaginaContenido>{
             Image.network('https://media.licdn.com/dms/image/C4E0BAQGEl5jj-N2CQw/company-logo_200_200/0/1630601529912?e=2147483647&v=beta&t=6znabYsnflfc7HFJwL3GK0wsvYYKflF9bJSg4egIzew')
         ),
         actions: [
-          // Dropdown menu in the AppBar
+          
           DropdownButton<String>(
             value: paginaSeleccionada,
             onChanged: (String? nuevoValor) {
@@ -220,7 +223,8 @@ class _StatePaginaContenido extends State<PaginaContenido>{
               });
               navegarPaginaSeleccionada(paginaSeleccionada, context);
             },
-            items: <String>['Bienvenida', 'Datos', 'Listar', 'Api']
+            
+            items: <String>['Bienvenida', 'Agregar', 'Buscar', 'Listar_Modificar_Eliminar']
                 .map<DropdownMenuItem<String>>((String value) {
               return DropdownMenuItem<String>(
                 value: value,
@@ -230,14 +234,24 @@ class _StatePaginaContenido extends State<PaginaContenido>{
           ),
         ],
       ),
+    
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SingleChildScrollView(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // First block of content
+               Text(
+              "Agrega un nuevo item a la API",
+              style: TextStyle(
+                fontSize: 23,
+                fontWeight: FontWeight.bold,
+                color: Colors.purple,
+              ),
+            ),
+              // Primer bloque de contenido
               Column(
+
                 children: [
                   TextField(
                     controller: controladorID,
@@ -260,17 +274,15 @@ class _StatePaginaContenido extends State<PaginaContenido>{
                         'departmentDesc': controladorDescripcion.text.toString(),
                       };
                       postData(newData);
-                      // Call the function when the button is pressed
-                      // Replace this with your actual function call
-                      print('Send POST Request');
+                      // Llama la funcion cuando se presiona el boton y se le da el parametro newData
+                      
+                      print('Se hace POST Request');
                     },
-                    child: Text('Send POST Request'),
+                    child: Text('Agregar item'),
                   ),
                 ],
               ),
-              // Second block of content
-
-              // Third block of content
+             
 
             ],
           ),
@@ -298,25 +310,7 @@ class _StatePaginaContenido extends State<PaginaContenido>{
   }
 
 
-  // Function to add an item to the list
-  void addItem() {
-    setState(() {
-      Item newItem = Item(
-        id: controladorID.text,
-        nombre: controladorNombre.text,
-        descripcion: controladorDescripcion.text,
-      );
 
-      items.add(newItem);
-
-      // Clear text field controllers after adding item
-      controladorID.clear();
-      controladorNombre.clear();
-      controladorDescripcion.clear();
-    });
-  }
-/**
- **/
 }
 
 class PaginaListar extends StatefulWidget {
@@ -325,7 +319,7 @@ class PaginaListar extends StatefulWidget {
 }
 
 class _PaginaListarState extends State<PaginaListar>{
-  String paginaSeleccionada = 'Listar';
+  String paginaSeleccionada = 'Buscar';
   List<dynamic> datoSeleccionado = [];
 
   Future<void> getOne(String id) async {
@@ -339,15 +333,15 @@ class _PaginaListarState extends State<PaginaListar>{
           datoSeleccionado.addAll(parsedJson['data']);
         });
         print(datoSeleccionado);
-        // Clear the text field controller value
+        // Limpia el valor del controlador de texto para seleccionar items por ID
         controladorSeleccion.text = '';
       }
       else if (response.statusCode == 404) {
-        // HTTP status code 500 may indicate a server error
+        // HTTP status code 404 indica que no se pudo encontrar esa ID
         print('Response Status Code: ${response.statusCode}');
         print('Response Body: ${response.body}');
 
-        // Show a message indicating that the ID already exists (adjust the message as needed)
+        // Muestra un mensaje indicando que no hay datos en esa ID
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('No hay datos en esa ID'),
@@ -379,7 +373,7 @@ class _PaginaListarState extends State<PaginaListar>{
             Image.network('https://media.licdn.com/dms/image/C4E0BAQGEl5jj-N2CQw/company-logo_200_200/0/1630601529912?e=2147483647&v=beta&t=6znabYsnflfc7HFJwL3GK0wsvYYKflF9bJSg4egIzew')
         ),
         actions: [
-          // Dropdown menu in the AppBar
+          // Dropdown menu
           DropdownButton<String>(
             value: paginaSeleccionada,
             onChanged: (String? nuevoValor) {
@@ -388,7 +382,8 @@ class _PaginaListarState extends State<PaginaListar>{
               });
               navegarPaginaSeleccionada(paginaSeleccionada, context);
             },
-            items: <String>['Bienvenida', 'Datos', 'Listar', 'Api']
+            
+            items: <String>['Bienvenida', 'Agregar', 'Buscar', 'Listar_Modificar_Eliminar']
                 .map<DropdownMenuItem<String>>((String value) {
               return DropdownMenuItem<String>(
                 value: value,
@@ -406,16 +401,27 @@ class _PaginaListarState extends State<PaginaListar>{
         padding: const EdgeInsets.all(16.0),
 
           child: Column(
+            
             children: [
+              Text(
+              "Buscar items de la API por ID",
+              style: TextStyle(
+                fontSize: 23,
+                fontWeight: FontWeight.bold,
+                color: Colors.purple,
+              )),
+              
               ListView.builder(
+                
                 shrinkWrap: true,
-                itemCount: datoSeleccionado.length, // Replace with your actual item count
+                itemCount: datoSeleccionado.length, 
                 itemBuilder: (context, index) {
-                  // Replace 'yourKey' with the actual key in your JSON
+                 
                   return ListTile(
                     title: Text('${datoSeleccionado[index]['departmentName']}'),
-                    // Replace 'yourKey' with the actual key in your JSON
-                    // You can display other data as needed
+                    subtitle: Text('${datoSeleccionado[index]['departmentDesc']}'),
+                    leading: Text('${datoSeleccionado[index]['departmentId']}'),
+                   
                   );
                 },
               ),
@@ -423,20 +429,19 @@ class _PaginaListarState extends State<PaginaListar>{
                   TextField(
                     controller: controladorSeleccion,
                     decoration:
-                    InputDecoration(labelText: 'ID item a seleccionar'),
+                    InputDecoration(labelText: 'ingrese ID item a seleccionar'),
                   ),
                   SizedBox(height: 20),
                   ElevatedButton(
                     onPressed: () {
                       String id = controladorSeleccion.text.toString();
-                      // Call the function when the button is pressed
+                      // Llama la funcion cuando se presiona el boton
                       getOne(id);
 
-                      // Call the function when the button is pressed
-                      // Replace this with your actual function call
+                  
                       print(id);
                     },
-                    child: Text('Send POST Request 2'),
+                    child: Text('Buscar item por ID'),
                   ),
                 ],
               ),
@@ -469,12 +474,11 @@ class PaginaApi extends StatefulWidget {
   _PaginaApiState createState() => _PaginaApiState();
 }
 
-//final Uri url = Uri.parse('https://af-mutual-valida-dev-001.azurewebsites.net/api/department/v1');
 
 
 
 class _PaginaApiState extends State<PaginaApi> {
-  String paginaSeleccionada = 'Api';
+  String paginaSeleccionada = 'Listar_Modificar_Eliminar';
   List<dynamic> jsonData = [];
   bool isLoading = false;
 
@@ -561,7 +565,7 @@ class _PaginaApiState extends State<PaginaApi> {
         throw Exception('Failed to update data with ID: $id');
       }
     } catch (e) {
-      print('Error updating data with ID $id: $e');
+      print('Error modificando data con ID $id: $e');
     }
   }
 
@@ -574,17 +578,17 @@ class _PaginaApiState extends State<PaginaApi> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Update Data'),
+          title: Text('Modificar Data'),
           content: SingleChildScrollView(
             child: Column(
               children: [
                 TextField(
                   controller: nameController,
-                  decoration: InputDecoration(labelText: 'New Name'),
+                  decoration: InputDecoration(labelText: 'Nuevo nombre'),
                 ),
                 TextField(
                   controller: descController,
-                  decoration: InputDecoration(labelText: 'New Description'),
+                  decoration: InputDecoration(labelText: 'Nueva descripción'),
                 ),
               ],
             ),
@@ -618,9 +622,37 @@ class _PaginaApiState extends State<PaginaApi> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('API Page'),
+        title: Text("Lista de items de la API"),
+        centerTitle: true,
+        leading:
+        IconButton(
+            onPressed: null,
+            icon:
+            Image.network('https://media.licdn.com/dms/image/C4E0BAQGEl5jj-N2CQw/company-logo_200_200/0/1630601529912?e=2147483647&v=beta&t=6znabYsnflfc7HFJwL3GK0wsvYYKflF9bJSg4egIzew')
+        ),
+        actions: [
+          // Dropdown menu
+          DropdownButton<String>(
+            value: paginaSeleccionada,
+            onChanged: (String? nuevoValor) {
+              setState(() {
+                paginaSeleccionada = nuevoValor!;
+              });
+              navegarPaginaSeleccionada(paginaSeleccionada, context);
+            },
+            
+            items: <String>['Bienvenida', 'Agregar', 'Buscar', 'Listar_Modificar_Eliminar']
+                .map<DropdownMenuItem<String>>((String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: Text(value),
+              );
+            }).toList(),
+          ),
+        ],
       ),
       body: Center(
+        
         child: isLoading
             ? CircularProgressIndicator()
             : jsonData.isEmpty
@@ -635,6 +667,8 @@ class _PaginaApiState extends State<PaginaApi> {
             final departmentId = department['departmentId'] ?? 'No id';
 
             return ListTile(
+
+
               title: Text(departmentName),
               subtitle: Text(departmentDesc),
               leading: Text(departmentId),
@@ -668,14 +702,7 @@ class _PaginaApiState extends State<PaginaApi> {
 
 
 
-//crear la clase para almacenar los items
-class Item {
-  final String id;
-  final String nombre;
-  final String descripcion;
 
-  Item({required this.id, required this.nombre, required this.descripcion});
-}
 /*
 Solución temporal a error CORS cross origin de conexion a API desde chrome
 1- Go to flutter\bin\cache and remove a file named: flutter_tools.stamp

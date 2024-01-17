@@ -1,16 +1,20 @@
-# prueba4
+# Aplicación de prueba para Huemul Solutions
 
-A new Flutter project.
+Un proyecto desarrollado en Flutter
 
-## Getting Started
+## Introducción
 
-This project is a starting point for a Flutter application.
+Este proyecto tenia como requerimiento el poder interactuar con una API REST, implementando todas las funciones necesarias, tales como GET, PUT, DELETE y UPDATE, con las cuales el usuario puede ingresar nuevos items, modificarlos, eliminarlos y listarlos. Todo desde la interfaz de la aplicación.
 
-A few resources to get you started if this is your first Flutter project:
+Esta aplicación fue probada en un celular con Android y desde Google Chrome, desde ambas plataformas se puede realizar las mismas funciones.
+Para ejecutar esta aplicación, lo primero es descargar e instalar la ultima version de Flutter desde la página oficial, luego se debe instalar el IDE Android Studio, el cual permite ejecutar la aplicación tanto en celulares con Android o desde el navegador o aplicación de escritorio.
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+## Ejecución desde Navegador
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Una nota importante,  para que desde el navegador Chrome se pueda interactuar con la API, fue necesario desactivar una opción de seguridad, ya que los navegadores tienen una medida de seguridad que impide conectarse a fuentes externas, si es que desde el servidor no se le da acceso. (CORS, Cross Origin Resource Sharing). Y como en este caso no tuve acceso al lado del servidor, solo pude desactivar esa medida de seguridad. Pero en un entorno real, se debe hacer una modificación en el servidor para que esta solución sea definitiva.
+
+## Nota sobre el resultado con el request GET ALL
+
+Al hacer la request GET ALL, desde Postman o desde la aplicación, solo devolvía un resultado, posiblemente por alguna configuración que se haya hecho desde el servidor. por lo que para poder hacer una lista con los resultados, se tuvo que hacer un ciclo for que va iterando por las IDs, agregandolas al final de la URL de la API, solución que tampoco es la ideal, ya que solo muestra desde la ID 1 hasta la 10 y toma un tiempo en cargar. 
+
+Por lo que para esto también se hizo una solución temporal. En entorno real, la API debería dar un listado con todos los resultados al hacer un request GET, y eso se tendría que configurar desde el lado del servidor.

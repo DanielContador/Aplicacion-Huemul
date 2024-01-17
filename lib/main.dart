@@ -120,7 +120,7 @@ void navegarPaginaSeleccionada(String paginaSeleccionada, context){
         MaterialPageRoute(builder: (context) => PaginaApi()),
       );
       break;
-      break;
+
   }
 }
 class PaginaContenido extends StatefulWidget {
@@ -130,6 +130,61 @@ class PaginaContenido extends StatefulWidget {
 
 class _StatePaginaContenido extends State<PaginaContenido>{
   String paginaSeleccionada = 'Datos';
+  List<dynamic> datoSeleccionado = [];
+
+  Future<void> postData(Map<String, dynamic> newData) async {
+    // Your API endpoint URL
+    final String apiUrl = 'https://af-mutual-valida-dev-001.azurewebsites.net/api/department/v1/';
+
+
+
+    // Perform the POST request
+    try {
+      final response = await http.post(
+        Uri.parse(apiUrl),
+        body: jsonEncode(newData),
+        headers: {'Content-Type': 'application/json'},
+      );
+      print('Request URL: ${response.request?.url}');
+      print('Request Headers: ${response.request?.headers}');
+      print('Request Body: ${json.encode(newData)}');
+      // Handle the response
+      if (response.statusCode == 201) {
+        // Successful request, you can handle the response data here
+        print('Response: ${response.body}');
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Item added successfully!'),
+            duration: Duration(seconds: 10), // Adjust the duration as needed
+          ),
+        );
+      }
+      else if (response.statusCode == 500) {
+        // HTTP status code 500 may indicate a server error
+        print('Response Status Code: ${response.statusCode}');
+        print('Response Body: ${response.body}');
+
+        // Show a message indicating that the ID already exists (adjust the message as needed)
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('ID already exists.'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+      else {
+
+        print('Response Status Code: ${response.statusCode}');
+        print('Response Body: ${response.body}');
+      }
+    } catch (e) {
+      // Handle any exceptions that occur
+      print('Exception: $e');
+    }
+  }
+
+
   //estructura para almacenar los datos
 
 
@@ -177,70 +232,58 @@ class _StatePaginaContenido extends State<PaginaContenido>{
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Formulario para el ingreso de datos
-            TextField(
-              controller: controladorID,
-              decoration: InputDecoration(labelText: 'ID'),
-            ),
-            TextField(
-              controller: controladorNombre,
-              decoration: InputDecoration(labelText: 'Nombre'),
-            ),
-            TextField(
-              controller: controladorDescripcion,
-              decoration: InputDecoration(labelText: 'Descripción'),
-            ),
-            SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () {
-                // Añadir items a la lista
-                addItem();
-              },
-              child: Text('Agregar Item'),
-            ),
-            SizedBox(height: 20),
-            // Lista para mostrar los items existentes
-//agregar aqui
-            Expanded(
-              child: ListView.builder(
-                itemCount: items.length,
-                itemBuilder: (context, index) {
-                  return Dismissible(
-                    key: Key(items[index].id), // Use a unique key for each item
-                    onDismissed: (direction) {
-                      // Remove the item from the list when dismissed
-                      setState(() {
-                        items.removeAt(index);
-                      });
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // First block of content
+              Column(
+                children: [
+                  TextField(
+                    controller: controladorID,
+                    decoration: InputDecoration(labelText: 'ID'),
+                  ),
+                  TextField(
+                    controller: controladorNombre,
+                    decoration: InputDecoration(labelText: 'Nombre'),
+                  ),
+                  TextField(
+                    controller: controladorDescripcion,
+                    decoration: InputDecoration(labelText: 'Descripción'),
+                  ),
+                  SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: () {
+                      Map<String, dynamic> newData = {
+                        'departmentId' : controladorID.text.toString(),
+                        'departmentName':controladorNombre.text.toString(),
+                        'departmentDesc': controladorDescripcion.text.toString(),
+                      };
+                      postData(newData);
+                      // Call the function when the button is pressed
+                      // Replace this with your actual function call
+                      print('Send POST Request');
                     },
-                    background: Container(
-                      color: Colors.red, // Background color when swiping to delete
-                      child: Icon(Icons.delete, color: Colors.white),
-                    ),
-                    child: ListTile(
-                      title: Text('ID: ${items[index].id}, Nombre: ${items[index].nombre}, Descripcion: ${items[index].descripcion}'),
-                      // Add more functionality as needed, e.g., edit or other actions
-                      trailing: IconButton(
-                        icon: Icon(Icons.delete),
-                        onPressed: () {
-                          // Manually trigger deletion when the delete button is pressed
-                          setState(() {
-                            items.removeAt(index);
-                          });
-                        },
-                      ),
-                    ),
-                  );
-                },
+                    child: Text('Send POST Request'),
+                  ),
+                ],
               ),
-            ),
+              // Second block of content
 
-          ],
+              // Third block of content
+
+            ],
+          ),
         ),
       ),
+
+
+
+
+
+
+
+
       floatingActionButton: FloatingActionButton(
         onPressed: (){
           Navigator.push(
@@ -253,6 +296,7 @@ class _StatePaginaContenido extends State<PaginaContenido>{
       ),
     );
   }
+
 
   // Function to add an item to the list
   void addItem() {
@@ -282,7 +326,44 @@ class PaginaListar extends StatefulWidget {
 
 class _PaginaListarState extends State<PaginaListar>{
   String paginaSeleccionada = 'Listar';
+  List<dynamic> datoSeleccionado = [];
 
+  Future<void> getOne(String id) async {
+    try {
+      final response = await http.get(Uri.parse('https://af-mutual-valida-dev-001.azurewebsites.net/api/department/v1/$id'));
+
+      if (response.statusCode == 200) {
+        print('get al : $id');
+        final Map<String, dynamic> parsedJson = json.decode(response.body);
+        setState(() {
+          datoSeleccionado.addAll(parsedJson['data']);
+        });
+        print(datoSeleccionado);
+        // Clear the text field controller value
+        controladorSeleccion.text = '';
+      }
+      else if (response.statusCode == 404) {
+        // HTTP status code 500 may indicate a server error
+        print('Response Status Code: ${response.statusCode}');
+        print('Response Body: ${response.body}');
+
+        // Show a message indicating that the ID already exists (adjust the message as needed)
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('No hay datos en esa ID'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+      else {
+        throw Exception('Failed to get: $id');
+      }
+    } catch (e) {
+      print('Error get data with ID $id: $e');
+    }
+  }
+
+  TextEditingController controladorSeleccion = TextEditingController();
 
   @override
   Widget build(BuildContext context){
@@ -323,47 +404,50 @@ class _PaginaListarState extends State<PaginaListar>{
 //insetar body con listar
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
 
-            // Lista para mostrar los items existentes
-            Expanded(
-              child: ListView.builder(
-                itemCount: items.length,
+          child: Column(
+            children: [
+              ListView.builder(
+                shrinkWrap: true,
+                itemCount: datoSeleccionado.length, // Replace with your actual item count
                 itemBuilder: (context, index) {
-                  return Dismissible(
-                    key: Key(items[index].id), // Use a unique key for each item
-                    onDismissed: (direction) {
-                      // Remove the item from the list when dismissed
-                      setState(() {
-                        items.removeAt(index);
-                      });
-                    },
-                    background: Container(
-                      color: Colors.red, // Background color when swiping to delete
-                      child: Icon(Icons.delete, color: Colors.white),
-                    ),
-                    child: ListTile(
-                      title: Text('ID: ${items[index].id}, Nombre: ${items[index].nombre}, Descripcion: ${items[index].descripcion}'),
-                      // Add more functionality as needed, e.g., edit or other actions
-                      trailing: IconButton(
-                        icon: Icon(Icons.delete),
-                        onPressed: () {
-                          // Manually trigger deletion when the delete button is pressed
-                          setState(() {
-                            items.removeAt(index);
-                          });
-                        },
-                      ),
-                    ),
+                  // Replace 'yourKey' with the actual key in your JSON
+                  return ListTile(
+                    title: Text('${datoSeleccionado[index]['departmentName']}'),
+                    // Replace 'yourKey' with the actual key in your JSON
+                    // You can display other data as needed
                   );
                 },
               ),
-            ),
-          ],
-        ),
-      ),
+
+                  TextField(
+                    controller: controladorSeleccion,
+                    decoration:
+                    InputDecoration(labelText: 'ID item a seleccionar'),
+                  ),
+                  SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: () {
+                      String id = controladorSeleccion.text.toString();
+                      // Call the function when the button is pressed
+                      getOne(id);
+
+                      // Call the function when the button is pressed
+                      // Replace this with your actual function call
+                      print(id);
+                    },
+                    child: Text('Send POST Request 2'),
+                  ),
+                ],
+              ),
+
+
+          ),
+
+
+
+
+
 
       floatingActionButton: FloatingActionButton(
         onPressed: (){
